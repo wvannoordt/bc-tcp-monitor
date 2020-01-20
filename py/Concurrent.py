@@ -4,8 +4,10 @@ class ConcurrentDataHandler:
         self.host = _host
 
     def on_tick(self):
-        data_in = bitcartinterlib.ReceiveObject()
-        if data_in is not None:
-            print(data_in)
-        else:
-            self.host.has_valid_connection = False
+        if self.host.has_valid_connection:
+            data_in = bitcartinterlib.ReceiveObjectAsync()
+            if not (data_in == "NODATA"):
+                print(data_in)
+            elif data_in is None:
+                self.host.disconnect()
+                print(data_in)

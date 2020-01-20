@@ -14,6 +14,12 @@ class W_TcpMonitorHub:
         self.init_config()
         self.data_stream_handler = Concurrent.ConcurrentDataHandler(self)
         self.sentinel_thread_run()
+        self.root_module.protocol("WM_DELETE_WINDOW", self.close_concurrent)
+
+    def close_concurrent(self):
+        self.disconnect()
+        bitcartinterlib.CloseConnection()
+        #self.root_module.destroy()
 
     def sentinel_thread_run(self):
         if self.has_valid_connection:
@@ -39,9 +45,13 @@ class W_TcpMonitorHub:
         new_window_worker = W_new_connection.W_NewConnectionWindow(new_window, new_root, self.connection_settings, self.assets, self)
 
     def try_connect(self, candidate_connection_settings):
-        if bitcartinterlib.SetConnection(candidate_connection_settings.ip_addr, candidate_connection_settings.port_number, candidate_connection_settings.buffer_size):
+        if bitcartinterlib.SetConnectionAsync(candidate_connection_settings.ip_addr, candidate_connection_settings.port_number, candidate_connection_settings.buffer_size):
             self.connection_settings = candidate_connection_settings
             self.has_valid_connection = True
             return True
         else:
             return False
+
+    def disconnect(self):
+        bitcartinterlib.CloseConnection()
+        self.has_valid_connection = False
