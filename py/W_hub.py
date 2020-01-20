@@ -18,8 +18,7 @@ class W_TcpMonitorHub:
 
     def close_concurrent(self):
         self.disconnect()
-        bitcartinterlib.CloseConnection()
-        #self.root_module.destroy()
+        self.root_module.destroy()
 
     def sentinel_thread_run(self):
         if self.has_valid_connection:
@@ -53,5 +52,8 @@ class W_TcpMonitorHub:
             return False
 
     def disconnect(self):
-        bitcartinterlib.CloseConnection()
+        self.data_stream_handler.block_from_callback = True
         self.has_valid_connection = False
+        bitcartinterlib.CloseConnection()
+        self.data_stream_handler.block_from_callback = False
+        print("disconnected")
