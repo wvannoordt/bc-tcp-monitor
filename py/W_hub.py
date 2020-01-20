@@ -56,4 +56,3 @@ class W_TcpMonitorHub:
         self.has_valid_connection = False
         bitcartinterlib.CloseConnection()
         self.data_stream_handler.block_from_callback = False
-        print("disconnected")
