@@ -5,6 +5,8 @@ import W_new_connection
 import os
 import bitcartinterlib
 import Concurrent
+import monitor
+import W_monitor
 
 class W_TcpMonitorHub:
     def __init__(self, underlying_window, root):
@@ -30,6 +32,7 @@ class W_TcpMonitorHub:
         self.connection_settings = GlobalStates.GlobalConnectionSettings()
         self.assets = GlobalStates.GlobalInstanceAssets()
         self.has_valid_connection = False
+        self.open_monitors = {}
 
     def init_config(self):
         absdir = os.path.dirname(os.path.realpath(__file__))
@@ -37,8 +40,20 @@ class W_TcpMonitorHub:
         self.assets.set_image(self.window.open_connection_button, 'add')
         self.window.open_connection_button.configure(command=self.user_set_global_connection)
         self.assets.set_image(self.window.monitor_time_history_button, "time_series")
-
+        self.window.monitor_time_history_button.configure(command=lambda plot_type="time_series": self.create_motitor(plot_type))
         self.assets.set_image(self.window.monitor_profile_button, "profile")
+        self.window.monitor_profile_button.configure(command=lambda plot_type="profile": self.create_motitor(plot_type))
+
+    def create_motitor(self, _plot_type):
+        if self.has_valid_connection:
+            target_title = self.window.monitor_list_box.get(tk.ACTIVE)
+            if target_title not in self.open_monitors:
+                new_root = tk.Toplevel(self.root_module)
+                monitor_window = monitor.MonitorWindow(new_root)
+                monitor_worker = W_monitor.W_MonitorWindow(monitor_window, new_root, _plot_type, self)
+                monitor_worker.id = hash(monitor_worker)
+                monitor_worker.data_title = target_title
+                self.open_monitors[target_title] = monitor_worker
 
     def user_set_global_connection(self):
         new_root = tk.Toplevel(self.root_module)

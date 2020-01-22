@@ -16,8 +16,8 @@ class GlobalInstanceAssets:
         'close' : tk.PhotoImage(file=os.path.join(absdir, "../assets/close_aa.png")),
         'file' : tk.PhotoImage(file=os.path.join(absdir, "../assets/file_aa.png")),
         'seek' : tk.PhotoImage(file=os.path.join(absdir, "../assets/seek_aa.png")),
-        'time_series' : tk.PhotoImage(file=os.path.join(absdir, "../assets/time_series_large.png")),
-        'profile' : tk.PhotoImage(file=os.path.join(absdir, "../assets/profile_large.png")),
+        'time_series' : tk.PhotoImage(file=os.path.join(absdir, "../assets/time_series_L_aa.png")),
+        'profile' : tk.PhotoImage(file=os.path.join(absdir, "../assets/profile_L_aa.png")),
         }
 
     def set_image(self, widget, image_key):
@@ -49,7 +49,7 @@ class DataDisplayState:
             except:
                 previous_time = data_tuple
             current_time = time.time()
-            self.display_data_by_name[name] = (current_time, "junk_value")
+            self.display_data_by_name[name] = (current_time, None)
             delta_t = current_time - previous_time
             self.delta_t_values.append(delta_t)
             self.data_trans_values.append(num_bytes)
@@ -58,5 +58,5 @@ class DataDisplayState:
                 self.data_trans_values.pop(0)
             self.compute_data_transfer_rate()
         if name not in self.display_data_by_name:
-            self.display_data_by_name[name] = (time.time())
+            self.display_data_by_name[name] = (time.time(), None)
             list_box_display.insert(tk.END, name)
