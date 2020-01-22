@@ -1,0 +1,3 @@
+[ ] - Freezes when disconnect, then try to reconnect
+[ ] - Data transfer rate computed slightly incorrectly
+[ ] - Transmitting multiple objects is unreliable

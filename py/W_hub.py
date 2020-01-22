@@ -35,7 +35,6 @@ class W_TcpMonitorHub:
         absdir = os.path.dirname(os.path.realpath(__file__))
 
         self.assets.set_image(self.window.open_connection_button, 'add')
-
         self.window.open_connection_button.configure(command=self.user_set_global_connection)
 
     def user_set_global_connection(self):
@@ -47,6 +46,8 @@ class W_TcpMonitorHub:
         if bitcartinterlib.SetConnectionAsync(candidate_connection_settings.ip_addr, candidate_connection_settings.port_number, candidate_connection_settings.buffer_size):
             self.connection_settings = candidate_connection_settings
             self.has_valid_connection = True
+            self.assets.set_image(self.window.open_connection_button, 'close')
+            self.window.open_connection_button.configure(command=self.disconnect)
             return True
         else:
             return False
@@ -58,6 +59,8 @@ class W_TcpMonitorHub:
             bitcartinterlib.CloseConnection()
             self.data_stream_handler.block_from_callback = False
             self.window.monitor_list_box.delete(0, tk.END)
+            self.assets.set_image(self.window.open_connection_button, 'add')
+            self.window.open_connection_button.configure(command=self.user_set_global_connection)
         self.update_info()
 
     def update_info(self):
