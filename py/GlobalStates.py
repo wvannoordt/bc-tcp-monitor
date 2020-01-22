@@ -15,7 +15,9 @@ class GlobalInstanceAssets:
         'add' : tk.PhotoImage(file=os.path.join(absdir, "../assets/add_aa.png")),
         'close' : tk.PhotoImage(file=os.path.join(absdir, "../assets/close_aa.png")),
         'file' : tk.PhotoImage(file=os.path.join(absdir, "../assets/file_aa.png")),
-        'seek' : tk.PhotoImage(file=os.path.join(absdir, "../assets/seek_aa.png"))
+        'seek' : tk.PhotoImage(file=os.path.join(absdir, "../assets/seek_aa.png")),
+        'time_series' : tk.PhotoImage(file=os.path.join(absdir, "../assets/time_series_large.png")),
+        'profile' : tk.PhotoImage(file=os.path.join(absdir, "../assets/profile_large.png")),
         }
 
     def set_image(self, widget, image_key):

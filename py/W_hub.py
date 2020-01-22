@@ -36,6 +36,9 @@ class W_TcpMonitorHub:
 
         self.assets.set_image(self.window.open_connection_button, 'add')
         self.window.open_connection_button.configure(command=self.user_set_global_connection)
+        self.assets.set_image(self.window.monitor_time_history_button, "time_series")
+
+        self.assets.set_image(self.window.monitor_profile_button, "profile")
 
     def user_set_global_connection(self):
         new_root = tk.Toplevel(self.root_module)
