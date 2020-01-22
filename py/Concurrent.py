@@ -4,7 +4,7 @@ class ConcurrentDataHandler:
         self.host = _host
         self.tries = 0
         self.try_max = 150
-        self.count = 0
+        self.count  = 0
         self.block_from_callback = False
 
     def on_tick(self):
@@ -20,4 +20,4 @@ class ConcurrentDataHandler:
             else:
                 if not (data_in == "NODATA"):
                     self.count = self.count + 1
-                    print("(DATA - " + str(self.count) + ")")
+                    self.host.receive_data(data_in)

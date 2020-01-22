@@ -15,6 +15,7 @@ class W_TcpMonitorHub:
         self.data_stream_handler = Concurrent.ConcurrentDataHandler(self)
         self.sentinel_thread_run()
         self.root_module.protocol("WM_DELETE_WINDOW", self.close_concurrent)
+        self.display_state = GlobalStates.DataDisplayState()
 
     def close_concurrent(self):
         self.disconnect()
@@ -28,7 +29,6 @@ class W_TcpMonitorHub:
     def init_data(self):
         self.connection_settings = GlobalStates.GlobalConnectionSettings()
         self.assets = GlobalStates.GlobalInstanceAssets()
-        self.buffer_object_display_list = []
         self.has_valid_connection = False
 
     def init_config(self):
@@ -52,7 +52,24 @@ class W_TcpMonitorHub:
             return False
 
     def disconnect(self):
-        self.data_stream_handler.block_from_callback = True
-        self.has_valid_connection = False
-        bitcartinterlib.CloseConnection()
-        self.data_stream_handler.block_from_callback = False
+        if self.has_valid_connection:
+            self.data_stream_handler.block_from_callback = True
+            self.has_valid_connection = False
+            bitcartinterlib.CloseConnection()
+            self.data_stream_handler.block_from_callback = False
+            self.window.monitor_list_box.delete(0, tk.END)
+        self.update_info()
+
+    def update_info(self):
+        if self.has_valid_connection:
+            self.window.ip_addr_label.configure(text=("IP: " + self.connection_settings.ip_addr))
+            self.window.port_label.configure(text=("Port: " + str(self.connection_settings.port_number)))
+            self.window.transfer_rate_label.configure(text=("Transfer rate: " + "{:7.2f}".format(self.display_state.data_transfer_rate) + " (Kb/s)"))
+        else:
+            self.window.ip_addr_label.configure(text="IP: ")
+            self.window.port_label.configure(text="Port: " )
+            self.window.transfer_rate_label.configure(text="Transfer rate: ")
+
+    def receive_data(self, input_data):
+        self.display_state.process_new_data(input_data, self.window.monitor_list_box)
+        self.update_info()
