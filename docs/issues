@@ -1,3 +1,4 @@
 [ ] - Freezes when disconnect, then try to reconnect
 [ ] - Data transfer rate computed slightly incorrectly
 [ ] - Transmitting multiple objects is unreliable
+[ ] - GUI locks down on close until a transmission is received (thread.join() is blocking). Probably switch to non-blocking read?

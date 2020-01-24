@@ -1,4 +1,15 @@
 import bitcartinterlib
+class TransmittedDataObject:
+    def __init__(self, data_in):
+        self.name = data_in[0]
+        self.byte_count = data_in[1]
+        self.dims = data_in[2]
+        self.dim_1 = self.dims[0]
+        self.dim_2 = self.dims[1]
+        self.dim_3 = self.dims[2]
+        self.total_dim = self.dim_1*self.dim_2*self.dim_3
+        self.data = data_in[3]
+
 class ConcurrentDataHandler:
     def __init__(self, _host):
         self.host = _host
@@ -20,4 +31,5 @@ class ConcurrentDataHandler:
             else:
                 if not (data_in == "NODATA"):
                     self.count = self.count + 1
-                    self.host.receive_data(data_in)
+                    data_obj = TransmittedDataObject(data_in)
+                    self.host.receive_data(data_obj)

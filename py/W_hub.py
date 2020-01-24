@@ -7,32 +7,49 @@ import bitcartinterlib
 import Concurrent
 import monitor
 import W_monitor
+import sys
 
 class W_TcpMonitorHub:
     def __init__(self, underlying_window, root):
         self.root_module = root
         self.window = underlying_window
+        self.closing = False
         self.init_data()
         self.init_config()
         self.data_stream_handler = Concurrent.ConcurrentDataHandler(self)
         self.sentinel_thread_run()
         self.root_module.protocol("WM_DELETE_WINDOW", self.close_concurrent)
         self.display_state = GlobalStates.DataDisplayState()
+        self.concurrent_job = None
+
 
     def close_concurrent(self):
+        try:
+            self.close_concurrent_VOL()
+        except:
+            sys.exit()
+
+    def close_concurrent_VOL(self):
+        self.closing = True
+        self.reduce_monitors()
+        for current_monitor in self.open_monitors_W:
+            current_monitor.root_module.destroy()
+        self.root_module.after_cancel(self.concurrent_job)
         self.disconnect()
         self.root_module.destroy()
+        sys.exit()
 
     def sentinel_thread_run(self):
-        if self.has_valid_connection:
+        if self.has_valid_connection and not self.closing:
             self.data_stream_handler.on_tick()
-        self.root_module.after(1, self.sentinel_thread_run)
+        if not self.closing:
+            self.concurrent_job = self.root_module.after(1, self.sentinel_thread_run)
 
     def init_data(self):
         self.connection_settings = GlobalStates.GlobalConnectionSettings()
         self.assets = GlobalStates.GlobalInstanceAssets()
         self.has_valid_connection = False
-        self.open_monitors = {}
+        self.open_monitors_W = []
 
     def init_config(self):
         absdir = os.path.dirname(os.path.realpath(__file__))
@@ -47,13 +64,19 @@ class W_TcpMonitorHub:
     def create_motitor(self, _plot_type):
         if self.has_valid_connection:
             target_title = self.window.monitor_list_box.get(tk.ACTIVE)
-            if target_title not in self.open_monitors:
-                new_root = tk.Toplevel(self.root_module)
-                monitor_window = monitor.MonitorWindow(new_root)
-                monitor_worker = W_monitor.W_MonitorWindow(monitor_window, new_root, _plot_type, self)
-                monitor_worker.id = hash(monitor_worker)
-                monitor_worker.data_title = target_title
-                self.open_monitors[target_title] = monitor_worker
+            new_root = tk.Toplevel(self.root_module)
+            monitor_window = monitor.MonitorWindow(new_root)
+            monitor_worker = W_monitor.W_MonitorWindow(monitor_window, new_root, _plot_type, self)
+            monitor_worker.id = hash(monitor_worker)
+            monitor_worker.data_title = target_title
+            self.open_monitors_W.append(monitor_worker)
+
+    def reduce_monitors(self):
+        for current_monitor in self.open_monitors_W:
+            try:
+                temp_id = current_monitor.id
+            except:
+                self.open_monitors_W.remove(current_monitor)
 
     def user_set_global_connection(self):
         new_root = tk.Toplevel(self.root_module)
@@ -93,4 +116,7 @@ class W_TcpMonitorHub:
 
     def receive_data(self, input_data):
         self.display_state.process_new_data(input_data, self.window.monitor_list_box)
+        self.reduce_monitors()
+        for current_monitor in self.open_monitors_W:
+            current_monitor.recieve_data(input_data)
         self.update_info()
