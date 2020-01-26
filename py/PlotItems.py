@@ -9,6 +9,10 @@ class PlotViewable(ABC):
         pass
 
     @abstractmethod
+    def get_if_using_user_axis_limits(self):
+        pass
+
+    @abstractmethod
     def recieve_new_data(self, data_in):
         pass
 
@@ -24,6 +28,10 @@ class PlotViewable(ABC):
     def set_log_scale(self, _x_is_log, _y_is_log, _z_is_log):
         pass
 
+    @abstractmethod
+    def auto_set_axis_bouds(self, figure, axis):
+        pass
+
 class PlotCurveTimeSeries(PlotViewable):
     def __init__(self):
         self.all_x_datas = []
@@ -33,8 +41,33 @@ class PlotCurveTimeSeries(PlotViewable):
         self.series_count = 0
         self.max_time_history = 1000
         self.x_is_log = False
-        self.y_is_log = False
+        #temporary
+        self.y_is_log = True
         self.z_is_log = False
+        self.using_user_defined_limits = False
+        self.axis_inflation = 1.25
+
+    def get_if_using_user_axis_limits(self):
+        return self.using_user_defined_limits
+
+    def auto_set_axis_bouds(self, figure, axis):
+        xmin = math.inf
+        xmax = -math.inf
+        ymin = math.inf
+        ymax = -math.inf
+        for i in range(len(self.all_x_datas)):
+            xmin = min([xmin, min(self.all_x_datas[i])])
+            xmax = max([xmax, max(self.all_x_datas[i])])
+            ymin = min([ymin, min(self.all_y_datas[i])])
+            ymax = max([ymax, max(self.all_y_datas[i])])
+        if xmin == xmax:
+            xmin = xmax - 1
+        if ymin == ymax:
+            ymin = ymax - 1
+        delta_y = ymax-ymin
+        y_mean = (ymax+ymin)*0.5
+        axis.set_xlim(xmin, xmax)
+        axis.set_ylim(y_mean - self.axis_inflation*delta_y, y_mean + self.axis_inflation*delta_y)
 
     def set_log_scale(self, _x_is_log, _y_is_log, _z_is_log):
         self.x_is_log = _x_is_log
@@ -47,9 +80,10 @@ class PlotCurveTimeSeries(PlotViewable):
                 self.initialize_using_data(data_in)
             else:
                 for i in range(self.series_count):
-                    #TEMPORARY
-                    self.all_y_datas[i].append(math.log(data_in.data[i]))
-                    #self.all_y_datas[i].append(data_in.data[i])
+                    if self.y_is_log:
+                        self.all_y_datas[i].append(math.log10(data_in.data[i]))
+                    else:
+                        self.all_y_datas[i].append(data_in.data[i])
                     if len(self.all_x_datas[i]) <= self.max_time_history:
                         self.all_x_datas[i].append(len(self.all_x_datas[i])+1)
                     if len(self.all_y_datas[i]) > self.max_time_history:
@@ -60,14 +94,15 @@ class PlotCurveTimeSeries(PlotViewable):
         self.data_name = data_in.name
         for i in range(self.series_count):
             self.all_y_datas.append([])
-            self.all_y_datas[i].append(data_in.data[i])
+            if self.y_is_log:
+                self.all_y_datas[i].append(math.log10(data_in.data[i]))
+            else:
+                self.all_y_datas[i].append(data_in.data[i])
             self.all_x_datas.append([])
             self.all_x_datas[i].append(1)
         self.is_initialized = True
 
     def show_on_figure(self, figure, axis):
-        axis.set_xlim(0, 1000)
-        axis.set_ylim(-5, 10)
         for i in range(len(self.all_x_datas)):
             cur_line = axis.plot(self.all_x_datas[i],self.all_y_datas[i])
         figure.canvas.draw_idle()

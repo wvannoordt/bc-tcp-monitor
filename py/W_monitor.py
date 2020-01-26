@@ -33,6 +33,8 @@ class W_MonitorWindow:
     def recieve_data(self, data):
         self.plot_item.recieve_new_data(data)
         self.plot_item.show_on_figure(self.figure, self.axis)
+        if not self.plot_item.get_if_using_user_axis_limits():
+            self.plot_item.auto_set_axis_bouds(self.figure, self.axis)
 
     def init_config(self):
         self.window.placeholder_canvas.configure(background="#212121")
