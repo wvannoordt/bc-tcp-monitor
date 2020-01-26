@@ -36,6 +36,7 @@ class PlotCurveTimeSeries(PlotViewable):
     def __init__(self):
         self.all_x_datas = []
         self.all_y_datas = []
+        self.line_objects = []
         self.data_name = None
         self.is_initialized = False
         self.series_count = 0
@@ -46,6 +47,7 @@ class PlotCurveTimeSeries(PlotViewable):
         self.z_is_log = False
         self.using_user_defined_limits = False
         self.axis_inflation = 1.25
+        self.first_plot = True
 
     def get_if_using_user_axis_limits(self):
         return self.using_user_defined_limits
@@ -64,7 +66,7 @@ class PlotCurveTimeSeries(PlotViewable):
             xmin = xmax - 1
         if ymin == ymax:
             ymin = ymax - 1
-        delta_y = ymax-ymin
+        delta_y = (ymax-ymin)*0.5
         y_mean = (ymax+ymin)*0.5
         axis.set_xlim(xmin, xmax)
         axis.set_ylim(y_mean - self.axis_inflation*delta_y, y_mean + self.axis_inflation*delta_y)
@@ -94,18 +96,32 @@ class PlotCurveTimeSeries(PlotViewable):
         self.data_name = data_in.name
         for i in range(self.series_count):
             self.all_y_datas.append([])
-            if self.y_is_log:
-                self.all_y_datas[i].append(math.log10(data_in.data[i]))
-            else:
-                self.all_y_datas[i].append(data_in.data[i])
             self.all_x_datas.append([])
-            self.all_x_datas[i].append(1)
+            for k in range(self.max_time_history):
+                if self.y_is_log:
+                    self.all_y_datas[i].append(math.log10(data_in.data[i]))
+                else:
+                    self.all_y_datas[i].append(data_in.data[i])
+                self.all_x_datas[i].append(1)
         self.is_initialized = True
 
     def show_on_figure(self, figure, axis):
-        for i in range(len(self.all_x_datas)):
-            cur_line = axis.plot(self.all_x_datas[i],self.all_y_datas[i])
-        figure.canvas.draw_idle()
+        if self.first_plot:
+            for i in range(len(self.all_x_datas)):
+                cur_line, = axis.plot(self.all_x_datas[i],self.all_y_datas[i])
+                self.line_objects.append(cur_line)
+            figure.canvas.draw_idle()
+            print("first done")
+            self.first_plot = False
+        else:
+            for i in range(len(self.all_x_datas)):
+                print("{}, {}".format(len(self.all_x_datas[i])), len(self.all_y_datas[i]))
+                cur_line = self.line_objects[i]
+                cur_line.set_ydata(self.all_y_datas[i])
+                cur_line.set_xdata(self.all_x_datas[i])
+        figure.canvas.draw()
+        figure.canvas.flush_events()
+
 
     def depends_on(self, data_in):
         return data_in.name == self.data_name
